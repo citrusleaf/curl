@@ -611,7 +611,7 @@ static CURLcode rtsp_do(struct connectdata *conn, bool *done)
     /* if a request-body has been sent off, we make sure this progress is
        noted properly */
     Curl_pgrsSetUploadCounter(data, http->writebytecount);
-    if(Curl_pgrsUpdate(conn))
+    if(Curl_pgrsUpdate(conn, NULL))
       result = CURLE_ABORTED_BY_CALLBACK;
   }
 

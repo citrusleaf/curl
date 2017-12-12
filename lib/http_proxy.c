@@ -344,7 +344,7 @@ static CURLcode CONNECT(struct connectdata *conn,
           /* socket buffer drained, return */
           return CURLE_OK;
 
-        if(Curl_pgrsUpdate(conn))
+        if(Curl_pgrsUpdate(conn, NULL))
           return CURLE_ABORTED_BY_CALLBACK;
 
         if(result) {
@@ -561,7 +561,7 @@ static CURLcode CONNECT(struct connectdata *conn,
         s->line_start = s->ptr;
       } /* while there's buffer left and loop is requested */
 
-      if(Curl_pgrsUpdate(conn))
+      if(Curl_pgrsUpdate(conn, NULL))
         return CURLE_ABORTED_BY_CALLBACK;
 
       if(error)

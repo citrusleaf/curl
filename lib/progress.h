@@ -46,7 +46,7 @@ void Curl_pgrsSetDownloadSize(struct Curl_easy *data, curl_off_t size);
 void Curl_pgrsSetUploadSize(struct Curl_easy *data, curl_off_t size);
 void Curl_pgrsSetDownloadCounter(struct Curl_easy *data, curl_off_t size);
 void Curl_pgrsSetUploadCounter(struct Curl_easy *data, curl_off_t size);
-int Curl_pgrsUpdate(struct connectdata *);
+int Curl_pgrsUpdate(struct connectdata *, struct curltime *caller_now);
 void Curl_pgrsResetTransferSizes(struct Curl_easy *data);
 void Curl_pgrsTime(struct Curl_easy *data, timerid timer);
 long Curl_pgrsLimitWaitTime(curl_off_t cursize,

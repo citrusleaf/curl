@@ -135,7 +135,7 @@ int Curl_pgrsDone(struct connectdata *conn)
   int rc;
   struct Curl_easy *data = conn->data;
   data->progress.lastshow = 0;
-  rc = Curl_pgrsUpdate(conn); /* the final (forced) update */
+  rc = Curl_pgrsUpdate(conn, NULL); /* the final (forced) update */
   if(rc)
     return rc;
 
@@ -347,7 +347,7 @@ void Curl_pgrsSetUploadSize(struct Curl_easy *data, curl_off_t size)
  * Curl_pgrsUpdate() returns 0 for success or the value returned by the
  * progress callback!
  */
-int Curl_pgrsUpdate(struct connectdata *conn)
+int Curl_pgrsUpdate(struct connectdata *conn, struct curltime *caller_now)
 {
   struct curltime now;
   int result;
@@ -370,7 +370,10 @@ int Curl_pgrsUpdate(struct connectdata *conn)
   curl_off_t total_estimate;
   bool shownow = FALSE;
 
-  now = Curl_tvnow(); /* what time is it */
+  if (caller_now)
+    now = *caller_now;
+  else
+    now = Curl_tvnow(); /* what time is it */
 
   /* The time spent so far (from the start) */
   data->progress.timespent = Curl_tvdiff_us(now, data->progress.start);

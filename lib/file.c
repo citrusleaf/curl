@@ -401,12 +401,12 @@ static CURLcode file_upload(struct connectdata *conn)
 
     Curl_pgrsSetUploadCounter(data, bytecount);
 
-    if(Curl_pgrsUpdate(conn))
+    if(Curl_pgrsUpdate(conn, NULL))
       result = CURLE_ABORTED_BY_CALLBACK;
     else
       result = Curl_speedcheck(data, Curl_tvnow());
   }
-  if(!result && Curl_pgrsUpdate(conn))
+  if(!result && Curl_pgrsUpdate(conn, NULL))
     result = CURLE_ABORTED_BY_CALLBACK;
 
   close(fd);
@@ -586,12 +586,12 @@ static CURLcode file_do(struct connectdata *conn, bool *done)
 
     Curl_pgrsSetDownloadCounter(data, bytecount);
 
-    if(Curl_pgrsUpdate(conn))
+    if(Curl_pgrsUpdate(conn, NULL))
       result = CURLE_ABORTED_BY_CALLBACK;
     else
       result = Curl_speedcheck(data, Curl_tvnow());
   }
-  if(Curl_pgrsUpdate(conn))
+  if(Curl_pgrsUpdate(conn, NULL))
     result = CURLE_ABORTED_BY_CALLBACK;
 
   return result;

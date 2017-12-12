@@ -117,7 +117,7 @@ CURLcode Curl_pp_statemach(struct pingpong *pp, bool block)
 
   if(block) {
     /* if we didn't wait, we don't have to spend time on this now */
-    if(Curl_pgrsUpdate(conn))
+    if(Curl_pgrsUpdate(conn, NULL))
       result = CURLE_ABORTED_BY_CALLBACK;
     else
       result = Curl_speedcheck(data, Curl_tvnow());

@@ -1185,7 +1185,7 @@ CURLcode Curl_readwrite(struct connectdata *conn,
     }
   }
 
-  if(Curl_pgrsUpdate(conn))
+  if(Curl_pgrsUpdate(conn, &k->now))
     result = CURLE_ABORTED_BY_CALLBACK;
   else
     result = Curl_speedcheck(data, k->now);
@@ -1243,7 +1243,7 @@ CURLcode Curl_readwrite(struct connectdata *conn,
       failf(data, "transfer closed with outstanding read data remaining");
       return CURLE_PARTIAL_FILE;
     }
-    if(Curl_pgrsUpdate(conn))
+    if(Curl_pgrsUpdate(conn, &k->now))
       return CURLE_ABORTED_BY_CALLBACK;
   }
 
