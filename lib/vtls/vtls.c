@@ -831,8 +831,12 @@ CURLcode Curl_pin_peer_pubkey(struct Curl_easy *data,
     sha256sumdigest = malloc(CURL_SHA256_DIGEST_LENGTH);
     if(!sha256sumdigest)
       return CURLE_OUT_OF_MEMORY;
-    Curl_ssl->sha256sum(pubkey, pubkeylen,
+    encode = Curl_ssl->sha256sum(pubkey, pubkeylen,
                         sha256sumdigest, CURL_SHA256_DIGEST_LENGTH);
+
+    if(encode != CURLE_OK)
+      return encode;
+
     encode = Curl_base64_encode(data, (char *)sha256sumdigest,
                                 CURL_SHA256_DIGEST_LENGTH, &encoded,
                                 &encodedlen);
@@ -1260,6 +1264,7 @@ static size_t Curl_multissl_version(char *buffer, size_t size)
 static int multissl_init(const struct Curl_ssl *backend)
 {
   const char *env;
+  char *env_tmp;
   int i;
 
   if(Curl_ssl != &Curl_ssl_multi)
@@ -1273,7 +1278,7 @@ static int multissl_init(const struct Curl_ssl *backend)
   if(!available_backends[0])
     return 1;
 
-  env = getenv("CURL_SSL_BACKEND");
+  env = env_tmp = curl_getenv("CURL_SSL_BACKEND");
 #ifdef CURL_DEFAULT_SSL_BACKEND
   if(!env)
     env = CURL_DEFAULT_SSL_BACKEND;
@@ -1282,6 +1287,7 @@ static int multissl_init(const struct Curl_ssl *backend)
     for(i = 0; available_backends[i]; i++) {
       if(strcasecompare(env, available_backends[i]->info.name)) {
         Curl_ssl = available_backends[i];
+        curl_free(env_tmp);
         return 0;
       }
     }
@@ -1289,6 +1295,7 @@ static int multissl_init(const struct Curl_ssl *backend)
 
   /* Fall back to first available backend */
   Curl_ssl = available_backends[0];
+  curl_free(env_tmp);
   return 0;
 }
 

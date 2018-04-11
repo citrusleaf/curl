@@ -1,63 +1,59 @@
-Curl and libcurl 7.56.1
+Curl and libcurl 7.60.0
 
- Public curl releases:         170
- Command line options:         211
- curl_easy_setopt() options:   249
+ Public curl releases:         174
+ Command line options:         214
+ curl_easy_setopt() options:   255
  Public functions in libcurl:  74
- Contributors:                 1626
+ Contributors:                 1705
+
+This release includes the following changes:
+
+ o Add CURLOPT_HAPROXYPROTOCOL, support for the HAProxy PROXY protocol [10]
+ o Add --haproxy-protocol for the command line tool [10]
+ o Add CURLOPT_DNS_SHUFFLE_ADDRESSES, shuffle returned IP addresses [12]
 
 This release includes the following bugfixes:
 
- o imap: if a FETCH response has no size, don't call write callback [32]
- o ftp: UBsan fixup 'pointer index expression overflowed [1]
- o failf: skip the sprintf() if there are no consumers [2]
- o fuzzer: move to using external curl-fuzzer [3]
- o lib/Makefile.m32: allow customizing dll suffixes [4]
- o docs: fix typo in curl_mime_data_cb man page [5]
- o darwinssl: add support for TLSv1.3 [6]
- o build: fix --disable-crypto-auth [7]
- o lib/config-win32.h: let SMB/SMBS be enabled with OpenSSL/NSS [8]
- o openssl: fix build without HAVE_OPAQUE_EVP_PKEY [9]
- o strtoofft: Remove extraneous null check [10]
- o multi_cleanup: call DONE on handles that never got that [11]
- o tests: added flaky keyword to tests 587 and 644
- o pingpong: return error when trying to send without connection [12]
- o remove_handle: call multi_done() first, then clear dns cache pointer [13]
- o mime: be tolerant about setting twice the same header list in a part.
- o mime: improve unbinding top multipart from easy handle.
- o mime: avoid resetting a part's encoder when part's contents change.
- o mime: refuse to add subparts to one of their own descendants [14]
- o RTSP: avoid integer overflow on funny RTSP responses [15]
- o curl: don't pass semicolons when parsing Content-Disposition [16]
- o openssl: enable PKCS12 support for !BoringSSL [17]
- o FAQ: s/CURLOPT_PROGRESSFUNCTION/CURLOPT_XFERINFOFUNCTION
- o CURLOPT_NOPROGRESS.3: also refer to xferinfofunction
- o CURLOPT_XFERINFODATA.3: fix duplicate see also
- o test298: verify --ftp-method nowcwd with URL encoded path [18]
- o FTP: URL decode path for dir listing in nocwd mode [19]
- o smtp_done: fix memory leak on send failure [20]
- o ftpserver: support case insensitive commands
- o test950; verify SMTP with custom request
- o openssl: don't use old BORINGSSL_YYYYMM macros [21]
- o setopt: update current connection SSL verify params [22]
- o winbuild/BUILD.WINDOWS.txt: mention WITH_NGHTTP2
- o curl: reimplement stdin buffering in -F option [23]
- o mime: keep "text/plain" content type if user-specified [24]
- o mime: fix the content reader to handle >16K data properly [25]
- o configure: remove the C++ compiler check [26]
- o memdebug: trace send, recv and socket [27]
- o runtests: use valgrind for torture as well
- o ldap: silence clang warning [28]
- o makefile.m32: allow to override gcc, ar and ranlib [29]
- o setopt: avoid integer overflows when setting millsecond values [30]
- o setopt: range check most long options [31]
- o ftp: reject illegal IP/port in PASV 227 response [33]
- o mime: do not reuse previously computed multipart size [34]
- o vtls: change struct Curl_ssl `close' field name to `close_one'
- o os400: add missing symbols in config file
- o mime: limit bas64-encoded lines length to 76 characters
- o mk-ca-bundle: Remove URL for aurora [35]
- o mk-ca-bundle: Fix URL for NSS [36]
+ o FTP: fix typo in recursive callback detection for seeking [1]
+ o test1208: marked flaky
+ o HTTP: make header-less responses still count correct body size [2]
+ o user-agent.d:: mention --proxy-header as well [3]
+ o http2: fixes typo [4]
+ o cleanup: misc typos in strings and comments [5]
+ o rate-limit: use three second window to better handle high speeds [6]
+ o examples/hiperfifo.c: improved
+ o pause: when changing pause state, update socket state [7]
+ o multi: improved pending transfers handling => improved performance [8]
+ o curl_version_info.3: fix ssl_version description [9]
+ o add_handle/easy_perform: clear errorbuffer on start if set [11]
+ o darwinssl: fix iOS build [13]
+ o cmake: add support for brotli [14]
+ o parsedate: support UT timezone [15]
+ o vauth/ntlm.h: fix the #ifdef header guard
+ o lib/curl_path.h: added #ifdef header guard
+ o vauth/cleartext: fix integer overflow check [16]
+ o CURLINFO_COOKIELIST.3: made the example not leak memory
+ o cookie.d: mention that "-" as filename means stdin [17]
+ o CURLINFO_SSL_VERIFYRESULT.3: fixed the example [18]
+ o http2: read pending frames (including GOAWAY) in connection-check [19]
+ o timeval: remove compilation warning by casting [20]
+ o cmake: avoid warn-as-error during config checks [21]
+ o travis-ci: enable -Werror for CMake builds [22]
+ o openldap: fix for NULL return from ldap_get_attribute_ber() [23]
+ o threaded resolver: track resolver time and set suitable timeout values [24]
+ o cmake: Add advapi32 as explicit link library for win32 [25]
+ o docs: fix CURLINFO_*_T examples use of CURL_FORMAT_CURL_OFF_T [26]
+ o test1148: set a fixed locale for the test [27]
+ o cookies: when reading from a file, only remove_expired once [28]
+ o cookie: store cookies per top-level-domain-specific hash table [29]
+ o openssl: fix build with LibreSSL 2.7 [30]
+ o tls: fix mbedTLS 2.7.0 build + handle sha256 failures [31]
+ o openssl: RESTORED verify locations when verifypeer==0 [32]
+ o file: restore old behavior for file:////foo/bar URLs [33]
+ o FTP: allow PASV on IPv6 connections when a proxy is being used [34]
+ o build-openssl.bat: allow custom paths for VS and perl [35]
+ o winbuild: make the clean target work without build-type [36]
+ o build-openssl.bat: Refer to VS2017 as VC14.1 instead of VC15 [37]
 
 This release includes the following known bugs:
 
@@ -66,50 +62,54 @@ This release includes the following known bugs:
 This release would not have looked like this without help, code, reports and
 advice from friends like these:
 
-  Alexey Melnichuk, Artak Galoyan, Benbuck Nason, Brian Carpenter,
-  Christian Schmitz, Dan Fandrich, Daniel Stenberg, David Benjamin,
-  Felix Kaiser, Javier Sixto, Jeroen Ooms, Jon DeVree, Kristiyan Tsaklev,
-  Marcel Raad, Max Dymond, Nick Zitzmann, Patrick Monnerat, Viktor Szakáts,
-  Wyatt O'Day, Zenju on github, 0xd34db347
-  (21 contributors)
+  Adam Brown, Alex Baines, Bas van Schaik, Bernard Spil, Chris Araman, Cyril B,
+  Daniel Stenberg, dasimx on github, David L., Dongliang Mu, Don J Olmstead,
+  Gaurav Malhotra, Howard Chu, Jon DeVree, Kees Dekker, Kobi Gurkan,
+  Laurie Clark-Michalek, Lauri Kasanen, Lawrence Matthews, Luz Paz,
+  Michael Kaufmann, Michał Janiszewski, Michal Trybus, Muz Dima,
+  Nikos Tsipinakis, Oumph on github, patelvivekv1993 on github,
+  Patrick Monnerat, Philip Prindeville, Ray Satiro, Rick Deist, Sergei Nikulov,
+  Vincas Razma, Wyatt O'Day, 刘佩东,
+  (35 contributors)
 
         Thanks! (and sorry if I forgot to mention someone)
 
 References to bug reports and discussions on issues:
 
- [1] = https://curl.haxx.se/bug/?i=1939
- [2] = https://curl.haxx.se/bug/?i=1936
- [3] = https://curl.haxx.se/bug/?i=1923
- [4] = https://curl.haxx.se/bug/?i=1942
- [5] = https://curl.haxx.se/bug/?i=1946
- [6] = https://curl.haxx.se/bug/?i=1794
- [7] = https://curl.haxx.se/bug/?i=1945
- [8] = https://curl.haxx.se/bug/?i=1943
- [9] = https://curl.haxx.se/bug/?i=1955
- [10] = https://curl.haxx.se/bug/?i=1950
- [11] = https://curl.haxx.se/bug/?i=1954
- [12] = https://curl.haxx.se/bug/?i=1953
- [13] = https://curl.haxx.se/bug/?i=1960
- [14] = https://curl.haxx.se/bug/?i=1962
- [15] = https://curl.haxx.se/bug/?i=1969
- [16] = https://curl.haxx.se/bug/?i=1964
- [17] = https://curl.haxx.se/bug/?i=1948
- [18] = https://curl.haxx.se/bug/?i=1974
- [19] = https://curl.haxx.se/bug/?i=1974
- [20] = https://curl.haxx.se/bug/?i=1977
- [21] = https://curl.haxx.se/bug/?i=1979
- [22] = https://curl.haxx.se/bug/?i=1941
- [23] = https://curl.haxx.se/bug/?i=1985
- [24] = https://curl.haxx.se/bug/?i=1986
- [25] = https://curl.haxx.se/bug/?i=1988
- [26] = https://curl.haxx.se/bug/?i=1990
- [27] = https://curl.haxx.se/bug/?i=1980
- [28] = https://curl.haxx.se/bug/?i=1992
- [29] = https://curl.haxx.se/bug/?i=1993
- [30] = https://curl.haxx.se/bug/?i=1938
- [31] = https://curl.haxx.se/bug/?i=1938
- [32] = https://curl.haxx.se/docs/adv_20171023.html
- [33] = https://curl.haxx.se/bug/?i=1997
- [34] = https://curl.haxx.se/bug/?i=1999
- [35] = https://curl.haxx.se/bug/?i=1998
- [36] = https://curl.haxx.se/bug/?i=1998
+ [1] = https://curl.haxx.se/bug/?i=2380
+ [2] = https://curl.haxx.se/bug/?i=2382
+ [3] = https://curl.haxx.se/bug/?i=2381
+ [4] = https://curl.haxx.se/bug/?i=2387
+ [5] = https://curl.haxx.se/bug/?i=2389
+ [6] = https://curl.haxx.se/bug/?i=2386
+ [7] = https://curl.haxx.se/mail/lib-2018-03/0048.html
+ [8] = https://curl.haxx.se/bug/?i=2369
+ [9] = https://curl.haxx.se/bug/?i=2364
+ [10] = https://curl.haxx.se/bug/?i=2162
+ [11] = https://curl.haxx.se/bug/?i=2190
+ [12] = https://curl.haxx.se/bug/?i=1694
+ [13] = https://curl.haxx.se/bug/?i=2397
+ [14] = https://curl.haxx.se/bug/?i=2392
+ [15] = https://curl.haxx.se/bug/?i=2401
+ [16] = https://curl.haxx.se/bug/?i=2408
+ [17] = https://curl.haxx.se/bug/?i=2410
+ [18] = https://curl.haxx.se/bug/?i=2400
+ [19] = https://curl.haxx.se/bug/?i=1967
+ [20] = https://curl.haxx.se/bug/?i=2358
+ [21] = https://curl.haxx.se/bug/?i=2358
+ [22] = https://curl.haxx.se/bug/?i=2418
+ [23] = https://curl.haxx.se/bug/?i=2399
+ [24] = https://curl.haxx.se/bug/?i=2419
+ [25] = https://curl.haxx.se/bug/?i=2363
+ [26] = https://curl.haxx.se/mail/lib-2018-03/0140.html
+ [27] = https://curl.haxx.se/bug/?i=2436
+ [28] = https://curl.haxx.se/bug/?i=2441
+ [29] = https://curl.haxx.se/bug/?i=2440
+ [30] = https://curl.haxx.se/bug/?i=2319
+ [31] = https://curl.haxx.se/bug/?i=2453
+ [32] = https://curl.haxx.se/bug/?i=2451
+ [33] = https://curl.haxx.se/bug/?i=2438
+ [34] = https://curl.haxx.se/bug/?i=2432
+ [35] = https://curl.haxx.se/bug/?i=2430
+ [36] = https://curl.haxx.se/bug/?i=2455
+ [37] = https://curl.haxx.se/bug/?i=2189

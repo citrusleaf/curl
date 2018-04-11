@@ -440,7 +440,17 @@ static CURLcode nss_create_object(struct ssl_connect_data *connssl,
     PK11_SETATTRS(attrs, attr_cnt, CKA_TRUST, pval, sizeof(*pval));
   }
 
-  obj = PK11_CreateGenericObject(slot, attrs, attr_cnt, PR_FALSE);
+  /* PK11_CreateManagedGenericObject() was introduced in NSS 3.34 because
+   * PK11_DestroyGenericObject() does not release resources allocated by
+   * PK11_CreateGenericObject() early enough.  */
+  obj =
+#ifdef HAVE_PK11_CREATEMANAGEDGENERICOBJECT
+    PK11_CreateManagedGenericObject
+#else
+    PK11_CreateGenericObject
+#endif
+    (slot, attrs, attr_cnt, PR_FALSE);
+
   PK11_FreeSlot(slot);
   if(!obj)
     return result;
@@ -2304,7 +2314,7 @@ static CURLcode Curl_nss_md5sum(unsigned char *tmp, /* input */
   return CURLE_OK;
 }
 
-static void Curl_nss_sha256sum(const unsigned char *tmp, /* input */
+static CURLcode Curl_nss_sha256sum(const unsigned char *tmp, /* input */
                                size_t tmplen,
                                unsigned char *sha256sum, /* output */
                                size_t sha256len)
@@ -2315,6 +2325,8 @@ static void Curl_nss_sha256sum(const unsigned char *tmp, /* input */
   PK11_DigestOp(SHA256pw, tmp, curlx_uztoui(tmplen));
   PK11_DigestFinal(SHA256pw, sha256sum, &SHA256out, curlx_uztoui(sha256len));
   PK11_DestroyContext(SHA256pw, PR_TRUE);
+
+  return CURLE_OK;
 }
 
 static bool Curl_nss_cert_status_request(void)
