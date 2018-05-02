@@ -43,6 +43,7 @@
  1.25 Expose tried IP addresses that failed
  1.26 CURL_REFUSE_CLEARTEXT
  1.27 hardcode the "localhost" addresses
+ 1.28 FD_CLOEXEC
 
  2. libcurl - multi interface
  2.1 More non-blocking
@@ -109,11 +110,11 @@
  13.4 Cache/share OpenSSL contexts
  13.5 Export session ids
  13.6 Provide callback for cert verification
- 13.7 improve configure --with-ssl
  13.8 Support DANE
  13.11 Support intermediate & root pinning for PINNEDPUBLICKEY
  13.12 Support HSTS
  13.13 Support HPKP
+ 13.14 Support the clienthello extension
 
  14. GnuTLS
  14.1 SSL engine stuff
@@ -121,7 +122,6 @@
 
  15. WinSSL/SChannel
  15.1 Add support for client certificate authentication
- 15.2 Add support for custom server certificate validation
  15.3 Add support for the --ciphers option
 
  16. SASL
@@ -159,6 +159,8 @@
  19. Build
  19.1 roffit
  19.2 Enable PIE and RELRO by default
+ 19.3 improve configure --with-ssl
+ 19.4 remove configure --disable-pthreads
 
  20. Test suite
  20.1 SSL tunnel
@@ -430,6 +432,14 @@
  https://bugzilla.mozilla.org/show_bug.cgi?id=1220810
 
  https://tools.ietf.org/html/draft-ietf-dnsop-let-localhost-be-localhost-02
+
+1.28 FD_CLOEXEC
+
+ It sets the close-on-exec flag for the file descriptor, which causes the file
+ descriptor to be automatically (and atomically) closed when any of the
+ exec-family functions succeed. Should probably be set by default?
+
+ https://github.com/curl/curl/issues/2252
 
 2. libcurl - multi interface
 
@@ -743,11 +753,6 @@ that doesn't exist on the server, just like --ftp-create-dirs.
  certificate, but this doesn't seem to be exposed in the libcurl APIs. Could
  it be? There's so much that could be done if it were!
 
-13.7 improve configure --with-ssl
-
- make the configure --with-ssl option first check for OpenSSL, then GnuTLS,
- then NSS...
-
 13.8 Support DANE
 
  DNS-Based Authentication of Named Entities (DANE) is a way to provide SSL
@@ -799,6 +804,16 @@ that doesn't exist on the server, just like --ftp-create-dirs.
  Doc: https://developer.mozilla.org/de/docs/Web/Security/Public_Key_Pinning
  RFC: https://tools.ietf.org/html/draft-ietf-websec-key-pinning-21
 
+13.14 Support the clienthello extension
+
+ Certain stupid networks and middle boxes have a problem with SSL handshake
+ pakets that are within a certain size range because how that sets some bits
+ that previously (in older TLS version) were not set. The clienthello
+ extension adds padding to avoid that size range.
+
+ https://tools.ietf.org/html/rfc7685
+ https://github.com/curl/curl/issues/2299
+
 14. GnuTLS
 
 14.1 SSL engine stuff
@@ -819,17 +834,6 @@ that doesn't exist on the server, just like --ftp-create-dirs.
  or the user to supply a custom client certificate using curl or libcurl.
 
  Therefore support for the existing -E/--cert and --key options should be
- implemented by supplying a custom certificate to the SChannel APIs, see:
- - Getting a Certificate for Schannel
-   https://msdn.microsoft.com/en-us/library/windows/desktop/aa375447.aspx
-
-15.2 Add support for custom server certificate validation
-
- WinSSL/SChannel currently makes use of the OS-level system and user
- certificate trust store. This does not allow the application or user to
- customize the server certificate validation process using curl or libcurl.
-
- Therefore support for the existing --cacert or --capath options should be
  implemented by supplying a custom certificate to the SChannel APIs, see:
  - Getting a Certificate for Schannel
    https://msdn.microsoft.com/en-us/library/windows/desktop/aa375447.aspx
@@ -1089,6 +1093,15 @@ that doesn't exist on the server, just like --ftp-create-dirs.
  to no impact, neither on the performance nor on the general functionality of
  curl.
 
+19.3 improve configure --with-ssl
+
+ make the configure --with-ssl option first check for OpenSSL, then GnuTLS,
+ then NSS...
+
+19.4 remove configure --disable-pthreads
+
+ That option that work. We have --disable-threaded-resolver already that works
+ and is more specific and preferable.
 
 20. Test suite
 

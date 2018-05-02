@@ -511,7 +511,7 @@ void Curl_ssl_close_all(struct Curl_easy *data)
 
 #if defined(USE_OPENSSL) || defined(USE_GNUTLS) || defined(USE_SCHANNEL) || \
   defined(USE_DARWINSSL) || defined(USE_POLARSSL) || defined(USE_NSS) || \
-  defined(USE_MBEDTLS)
+  defined(USE_MBEDTLS) || defined(USE_CYASSL)
 int Curl_ssl_getsock(struct connectdata *conn, curl_socket_t *socks,
                      int numsocks)
 {
@@ -1304,6 +1304,9 @@ CURLsslset curl_global_sslset(curl_sslbackend id, const char *name,
 {
   int i;
 
+  if(avail)
+    *avail = (const curl_ssl_backend **)&available_backends;
+
   if(Curl_ssl != &Curl_ssl_multi)
     return id == Curl_ssl->info.id ? CURLSSLSET_OK : CURLSSLSET_TOO_LATE;
 
@@ -1315,8 +1318,6 @@ CURLsslset curl_global_sslset(curl_sslbackend id, const char *name,
     }
   }
 
-  if(avail)
-    *avail = (const curl_ssl_backend **)&available_backends;
   return CURLSSLSET_UNKNOWN_BACKEND;
 }
 

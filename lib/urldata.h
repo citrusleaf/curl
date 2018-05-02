@@ -328,6 +328,7 @@ struct ntlmdata {
   BYTE *output_token;
   BYTE *input_token;
   size_t input_token_len;
+  TCHAR *spn;
 #else
   unsigned int flags;
   unsigned char nonce[8];
@@ -1225,7 +1226,7 @@ struct UrlState {
   curl_off_t current_speed;  /* the ProgressShow() function sets this,
                                 bytes / second */
   bool this_is_a_follow; /* this is a followed Location: request */
-
+  bool refused_stream; /* this was refused, try again */
   char *first_host; /* host name of the first (not followed) request.
                        if set, this should be the host name that we will
                        sent authorization to, no else. Used to make Location:
@@ -1422,13 +1423,8 @@ enum dupstring {
   STRING_SSH_HOST_PUBLIC_KEY_MD5, /* md5 of host public key in ascii hex */
   STRING_SSH_KNOWNHOSTS,  /* file name of knownhosts file */
 #endif
-#if defined(HAVE_GSSAPI) || defined(USE_WINDOWS_SSPI)
   STRING_PROXY_SERVICE_NAME, /* Proxy service name */
-#endif
-#if !defined(CURL_DISABLE_CRYPTO_AUTH) || defined(USE_KERBEROS5) || \
-  defined(USE_SPNEGO) || defined(HAVE_GSSAPI)
   STRING_SERVICE_NAME,    /* Service name */
-#endif
   STRING_MAIL_FROM,
   STRING_MAIL_AUTH,
 

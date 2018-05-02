@@ -546,7 +546,9 @@ static CURLcode multi_done(struct connectdata **connp,
   if(conn->send_pipe.size || conn->recv_pipe.size) {
     /* Stop if pipeline is not empty . */
     data->easy_conn = NULL;
-    DEBUGF(infof(data, "Connection still in use, no more multi_done now!\n"));
+    DEBUGF(infof(data, "Connection still in use %d/%d, "
+                 "no more multi_done now!\n",
+                 conn->send_pipe.size, conn->recv_pipe.size));
     return CURLE_OK;
   }
 
@@ -1796,8 +1798,7 @@ static CURLMcode multi_runsingle(struct Curl_multi *multi,
       if((data->easy_conn->sockfd != CURL_SOCKET_BAD) ||
          (data->easy_conn->writesockfd != CURL_SOCKET_BAD))
         multistate(data, CURLM_STATE_WAITPERFORM);
-      else
-      {
+      else {
         if(data->state.wildcardmatch &&
            ((data->easy_conn->handler->flags & PROTOPT_WILDCARD) == 0)) {
            data->wildcard.state = CURLWC_DONE;

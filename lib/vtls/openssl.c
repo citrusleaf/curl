@@ -1323,6 +1323,51 @@ static void Curl_ossl_close_all(struct Curl_easy *data)
 
 /* ====================================================== */
 
+/*
+ * Match subjectAltName against the host name. This requires a conversion
+ * in CURL_DOES_CONVERSIONS builds.
+ */
+static bool subj_alt_hostcheck(struct Curl_easy *data,
+                               const char *match_pattern, const char *hostname,
+                               const char *dispname)
+#ifdef CURL_DOES_CONVERSIONS
+{
+  bool res = FALSE;
+
+  /* Curl_cert_hostcheck uses host encoding, but we get ASCII from
+     OpenSSl.
+   */
+  char *match_pattern2 = strdup(match_pattern);
+
+  if(match_pattern2) {
+    if(Curl_convert_from_network(data, match_pattern2,
+                                strlen(match_pattern2)) == CURLE_OK) {
+      if(Curl_cert_hostcheck(match_pattern2, hostname)) {
+        res = TRUE;
+        infof(data,
+                " subjectAltName: host \"%s\" matched cert's \"%s\"\n",
+                dispname, match_pattern2);
+      }
+    }
+    free(match_pattern2);
+  }
+  else {
+    failf(data,
+        "SSL: out of memory when allocating temporary for subjectAltName");
+  }
+  return res;
+}
+#else
+{
+  if(Curl_cert_hostcheck(match_pattern, hostname)) {
+    infof(data, " subjectAltName: host \"%s\" matched cert's \"%s\"\n",
+                  dispname, match_pattern);
+    return TRUE;
+  }
+  return FALSE;
+}
+#endif
+
 
 /* Quote from RFC2818 section 3.1 "Server Identity"
 
@@ -1422,11 +1467,8 @@ static CURLcode verifyhost(struct connectdata *conn, X509 *server_cert)
           if((altlen == strlen(altptr)) &&
              /* if this isn't true, there was an embedded zero in the name
                 string and we cannot match it. */
-             Curl_cert_hostcheck(altptr, hostname)) {
+             subj_alt_hostcheck(data, altptr, hostname, dispname)) {
             dnsmatched = TRUE;
-            infof(data,
-                  " subjectAltName: host \"%s\" matched cert's \"%s\"\n",
-                  dispname, altptr);
           }
           break;
 
@@ -1737,13 +1779,40 @@ static const char *ssl_msg_type(int ssl_ver, int msg)
       case SSL3_MT_CERTIFICATE_STATUS:
         return "Certificate Status";
 #endif
+#ifdef SSL3_MT_ENCRYPTED_EXTENSIONS
+      case SSL3_MT_ENCRYPTED_EXTENSIONS:
+        return "Encrypted Extensions";
+#endif
+#ifdef SSL3_MT_END_OF_EARLY_DATA
+      case SSL3_MT_END_OF_EARLY_DATA:
+        return "End of early data";
+#endif
+#ifdef SSL3_MT_KEY_UPDATE
+      case SSL3_MT_KEY_UPDATE:
+        return "Key update";
+#endif
+#ifdef SSL3_MT_NEXT_PROTO
+      case SSL3_MT_NEXT_PROTO:
+        return "Next protocol";
+#endif
+#ifdef SSL3_MT_MESSAGE_HASH
+      case SSL3_MT_MESSAGE_HASH:
+        return "Message hash";
+#endif
     }
   }
   return "Unknown";
 }
 
-static const char *tls_rt_type(int type)
+static const char *tls_rt_type(int type, const void *buf, size_t buflen)
 {
+  (void)buf;
+  (void)buflen;
+#ifdef SSL3_RT_INNER_CONTENT_TYPE
+  if(type == SSL3_RT_INNER_CONTENT_TYPE && buf && buflen >= 1)
+    type = *(unsigned char *)buf;
+#endif
+
   switch(type) {
 #ifdef SSL3_RT_HEADER
   case SSL3_RT_HEADER:
@@ -1771,10 +1840,7 @@ static void ssl_tls_trace(int direction, int ssl_ver, int content_type,
                           void *userp)
 {
   struct Curl_easy *data;
-  const char *msg_name, *tls_rt_name;
-  char ssl_buf[1024];
   char unknown[32];
-  int msg_type, txt_len;
   const char *verstr = NULL;
   struct connectdata *conn = userp;
 
@@ -1822,6 +1888,10 @@ static void ssl_tls_trace(int direction, int ssl_ver, int content_type,
   }
 
   if(ssl_ver) {
+    const char *msg_name, *tls_rt_name;
+    char ssl_buf[1024];
+    int msg_type, txt_len;
+
     /* the info given when the version is zero is not that useful for us */
 
     ssl_ver >>= 8; /* check the upper 8 bits only below */
@@ -1831,17 +1901,28 @@ static void ssl_tls_trace(int direction, int ssl_ver, int content_type,
      * is at 'buf[0]'.
      */
     if(ssl_ver == SSL3_VERSION_MAJOR && content_type)
-      tls_rt_name = tls_rt_type(content_type);
+      tls_rt_name = tls_rt_type(content_type, buf, len);
     else
       tls_rt_name = "";
 
-    msg_type = *(char *)buf;
-    msg_name = ssl_msg_type(ssl_ver, msg_type);
+#ifdef SSL3_RT_INNER_CONTENT_TYPE
+    if(content_type == SSL3_RT_INNER_CONTENT_TYPE) {
+      msg_type = 0;
+      msg_name = "[no content]";
+    }
+    else
+#endif
+    {
+      msg_type = *(char *)buf;
+      msg_name = ssl_msg_type(ssl_ver, msg_type);
+    }
 
     txt_len = snprintf(ssl_buf, sizeof(ssl_buf), "%s (%s), %s, %s (%d):\n",
                        verstr, direction?"OUT":"IN",
                        tls_rt_name, msg_name, msg_type);
-    Curl_debug(data, CURLINFO_TEXT, ssl_buf, (size_t)txt_len, NULL);
+    if(0 <= txt_len && (unsigned)txt_len < sizeof(ssl_buf)) {
+      Curl_debug(data, CURLINFO_TEXT, ssl_buf, (size_t)txt_len, NULL);
+    }
   }
 
   Curl_debug(data, (direction == 1) ? CURLINFO_SSL_DATA_OUT :
