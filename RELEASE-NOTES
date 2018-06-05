@@ -4,7 +4,7 @@ Curl and libcurl 7.60.0
  Command line options:         214
  curl_easy_setopt() options:   255
  Public functions in libcurl:  74
- Contributors:                 1705
+ Contributors:                 1741
 
 This release includes the following changes:
 
@@ -14,6 +14,8 @@ This release includes the following changes:
 
 This release includes the following bugfixes:
 
+ o FTP: shutdown response buffer overflow CVE-2018-1000300 [88]
+ o RTSP: bad headers buffer over-read CVE-2018-1000301 [89]
  o FTP: fix typo in recursive callback detection for seeking [1]
  o test1208: marked flaky
  o HTTP: make header-less responses still count correct body size [2]
@@ -56,7 +58,7 @@ This release includes the following bugfixes:
  o build-openssl.bat: Refer to VS2017 as VC14.1 instead of VC15 [37]
  o curl: retry on FTP 4xx, ignore other protocols [38]
  o configure: detect (and use) sa_family_t [39]
- o examples/sftpuploadresmue: Fix Windows large file seek
+ o examples/sftpuploadresume: Fix Windows large file seek
  o build: cleanup to fix clang warnings/errors [40]
  o winbuild: updated the documentation [41]
  o lib: silence null-dereference warnings [42]
@@ -94,6 +96,35 @@ This release includes the following bugfixes:
  o mime: avoid NULL pointer dereference risk [70]
  o cookies: ensure that we have cookies before writing jar [71]
  o os400.c: fix checksrc warnings [72]
+ o configure: provide --with-wolfssl as an alias for --with-cyassl
+ o cyassl: adapt to libraries without TLS 1.0 support built-in
+ o http2: get rid of another strstr [73]
+ o checksrc: force indentation of lines after an else [74]
+ o cookies: remove unused macro [75]
+ o CURLINFO_PROTOCOL.3: mention the existing defined names
+ o tests: provide 'manual' as a feature to optionally require [76]
+ o travis: enable libssh2 on both macos and Linux [77]
+ o CURLOPT_URL.3: added ENCODING section
+ o wolfssl: Fix non-blocking connect [78]
+ o vtls: don't define MD5_DIGEST_LENGTH for wolfssl
+ o docs: remove extraneous commas in man pages [79]
+ o URL: fix ASCII dependency in strcpy_url and strlen_url [80]
+ o ssh-libssh.c: fix left shift compiler warning
+ o configure: only check for CA bundle for file-using SSL backends [81]
+ o travis: add an mbedtls build [82]
+ o http: don't set the "rewind" flag when not uploading anything [83]
+ o configure: put CURLDEBUG and DEBUGBUILD in lib/curl_config.h [84]
+ o transfer: don't unset writesockfd on setup of multiplexed conns [85]
+ o vtls: use unified "supports" bitfield member in backends [86]
+ o URLs: fix one more http url [87]
+ o travis: add a build using WolfSSL [90]
+ o openssl: change FILE ops to BIO ops [91]
+ o travis: add build using NSS [92]
+ o smb: reject negative file sizes [93]
+ o cookies: accept parameter names as cookie name [94]
+ o http2: getsock fix for uploads [95]
+ o all over: fixed format specifiers [96]
+ o http2: use the correct function pointer typedef [97]
 
 This release includes the following known bugs:
 
@@ -102,19 +133,21 @@ This release includes the following known bugs:
 This release would not have looked like this without help, code, reports and
 advice from friends like these:
 
-  Adam Brown, Alex Baines, Anders Bakken, Bas van Schaik, Bernard Spil,
-  Chris Araman, Christian Schmitz, Cyril B, Dagobert Michelsen,
-  Daniel Gustafsson, Daniel Stenberg, Dan McNulty, dasimx on github, David L.,
-  Dmitry Mikhirev, Dongliang Mu, Don J Olmstead, Eric Gallager,
-  Ernst Sjöstrand, Gaurav Malhotra, Geeknik Labs, Howard Chu, iz8mbw on github,
-  Jakub Wilk, Jon DeVree, Kees Dekker, Kobi Gurkan, Laurie Clark-Michalek,
-  Lauri Kasanen, Lawrence Matthews, Luz Paz, Marcel Raad, Michael Kaufmann,
+  Adam Brown, Alex Baines, Anders Bakken, Anders Roxell, anshnd on github,
+  Bas van Schaik, Bernard Spil, Chris Araman, Christian Schmitz, Cyril B,
+  Dagobert Michelsen, Dan Fandrich, Daniel Gustafsson, Daniel Stenberg,
+  Dan McNulty, Dario Weisser, dasimx on github, David Garske, David L.,
+  Denis Ollier, Dmitry Mikhirev, Dongliang Mu, Don J Olmstead, Eric Gallager,
+  Ernst Sjöstrand, Frank Gevaerts, Gaurav Malhotra, Geeknik Labs, Howard Chu,
+  iz8mbw on github, Jakub Wilk, Jon DeVree, Kees Dekker, Kobi Gurkan,
+  Laurie Clark-Michalek, Lauri Kasanen, Lawrence Matthews, Luz Paz,
+  Marcel Raad, Max Dymond, Michael Kaufmann, Michael Kilburn,
   Michał Janiszewski, Michal Trybus, Muz Dima, Nikos Tsipinakis, Ori Avtalion,
   Oumph on github, patelvivekv1993 on github, Patrick Monnerat,
   Philip Prindeville, Ray Satiro, Rick Deist, Rikard Falkeborn, Sergei Nikulov,
-  Stefan Agner, Stephan Mühlstrasser, Terry Wu, Vincas Razma, wncboy on github,
-  Wyatt O'Day, 刘佩东,
-  (53 contributors)
+  Stefan Agner, steini2000 on github, Stephan Mühlstrasser, Sunny Purushe,
+  Terry Wu, Vincas Razma, wncboy on github, Wyatt O'Day, 刘佩东,
+  (64 contributors)
 
         Thanks! (and sorry if I forgot to mention someone)
 
@@ -192,3 +225,28 @@ References to bug reports and discussions on issues:
  [70] = https://curl.haxx.se/bug/?i=2527
  [71] = https://curl.haxx.se/bug/?i=2529
  [72] = https://curl.haxx.se/bug/?i=2525
+ [73] = https://curl.haxx.se/bug/?i=2534
+ [74] = https://curl.haxx.se/bug/?i=2532
+ [75] = https://curl.haxx.se/bug/?i=2537
+ [76] = https://curl.haxx.se/bug/?i=2533
+ [77] = https://curl.haxx.se/bug/?i=2541
+ [78] = https://curl.haxx.se/bug/?i=2542
+ [79] = https://curl.haxx.se/bug/?i=2544
+ [80] = https://curl.haxx.se/bug/?i=2535
+ [81] = https://curl.haxx.se/bug/?i=2180
+ [82] = https://curl.haxx.se/bug/?i=2531
+ [83] = https://curl.haxx.se/bug/?i=2546
+ [84] = https://curl.haxx.se/bug/?i=2548
+ [85] = https://curl.haxx.se/bug/?i=2520
+ [86] = https://curl.haxx.se/bug/?i=2547
+ [87] = https://curl.haxx.se/bug/?i=2550
+ [88] = https://curl.haxx.se/docs/adv_2018-82c2.html
+ [89] = https://curl.haxx.se/docs/adv_2018-b138.html
+ [90] = https://curl.haxx.se/bug/?i=2528
+ [91] = https://curl.haxx.se/bug/?i=2512
+ [92] = https://curl.haxx.se/bug/?i=2558
+ [93] = https://curl.haxx.se/bug/?i=2558
+ [94] = https://curl.haxx.se/bug/?i=2564
+ [95] = https://curl.haxx.se/bug/?i=2520
+ [96] = https://curl.haxx.se/bug/?i=2561
+ [97] = https://curl.haxx.se/bug/?i=2560

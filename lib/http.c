@@ -433,7 +433,7 @@ static CURLcode http_perhapsrewind(struct connectdata *conn)
            data left to send, keep on sending. */
 
         /* rewind data when completely done sending! */
-        if(!conn->bits.authneg) {
+        if(!conn->bits.authneg && (conn->writesockfd != CURL_SOCKET_BAD)) {
           conn->bits.rewindaftersend = TRUE;
           infof(data, "Rewind stream after send\n");
         }
@@ -1407,7 +1407,7 @@ static CURLcode add_haproxy_protocol_header(struct connectdata *conn)
 
   snprintf(proxy_header,
            sizeof proxy_header,
-           "PROXY %s %s %s %i %i\r\n",
+           "PROXY %s %s %s %li %li\r\n",
            tcp_version,
            conn->data->info.conn_local_ip,
            conn->data->info.conn_primary_ip,
@@ -2132,7 +2132,7 @@ CURLcode Curl_http(struct connectdata *conn, bool *done)
                                     host,
                                     conn->bits.ipv6_ip?"]":"");
     else
-      conn->allocptr.host = aprintf("Host: %s%s%s:%hu\r\n",
+      conn->allocptr.host = aprintf("Host: %s%s%s:%d\r\n",
                                     conn->bits.ipv6_ip?"[":"",
                                     host,
                                     conn->bits.ipv6_ip?"]":"",
@@ -3014,6 +3014,8 @@ CURLcode Curl_http_readwrite_headers(struct Curl_easy *data,
 {
   CURLcode result;
   struct SingleRequest *k = &data->req;
+  ssize_t onread = *nread;
+  char *ostr = k->str;
 
   /* header line within buffer loop */
   do {
@@ -3078,7 +3080,9 @@ CURLcode Curl_http_readwrite_headers(struct Curl_easy *data,
         else {
           /* this was all we read so it's all a bad header */
           k->badheader = HEADER_ALLBAD;
-          *nread = (ssize_t)rest_length;
+          *nread = onread;
+          k->str = ostr;
+          return CURLE_OK;
         }
         break;
       }
