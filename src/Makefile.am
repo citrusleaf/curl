@@ -5,7 +5,7 @@
 #                            | (__| |_| |  _ <| |___
 #                             \___|\___/|_| \_\_____|
 #
-# Copyright (C) 1998 - 2017, Daniel Stenberg, <daniel@haxx.se>, et al.
+# Copyright (C) 1998 - 2018, Daniel Stenberg, <daniel@haxx.se>, et al.
 #
 # This software is licensed as described in the file COPYING, which
 # you should have received as part of this distribution. The terms
@@ -88,9 +88,9 @@ CLEANFILES = tool_hugehelp.c
 # embedded text.
 NROFF=env LC_ALL=C @NROFF@ @MANOPT@ # figured out by the configure script
 
-EXTRA_DIST = mkhelp.pl makefile.dj Makefile.b32		\
- Makefile.m32 macos/curl.mcp.xml.sit.hqx macos/MACINSTALL.TXT		\
- macos/src/curl_GUSIConfig.cpp macos/src/macos_main.cpp makefile.amiga	\
+EXTRA_DIST = mkhelp.pl makefile.dj                                     \
+ Makefile.m32 macos/curl.mcp.xml.sit.hqx macos/MACINSTALL.TXT          \
+ macos/src/curl_GUSIConfig.cpp macos/src/macos_main.cpp makefile.amiga \
  curl.rc Makefile.netware Makefile.inc Makefile.Watcom CMakeLists.txt
 
 # Use absolute directory to disable VPATH
@@ -140,3 +140,11 @@ if CURLDEBUG
 # for debug builds, we scan the sources on all regular make invokes
 all-local: checksrc
 endif
+
+# disable the tests that are mostly causing false positives
+TIDYFLAGS=-checks=-clang-analyzer-security.insecureAPI.strcpy,-clang-analyzer-optin.performance.Padding,-clang-analyzer-valist.Uninitialized,-clang-analyzer-core.NonNullParamChecker,-clang-analyzer-core.NullDereference
+
+TIDY:=clang-tidy
+
+tidy:
+	$(TIDY) $(CURL_CFILES) $(TIDYFLAGS) -- $(AM_CPPFLAGS) $(CPPFLAGS) -DHAVE_CONFIG_H
