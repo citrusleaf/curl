@@ -3307,7 +3307,14 @@ if test X"$want_h2" != Xno; then
 
     LDFLAGS="$LDFLAGS $LD_H2"
     CPPFLAGS="$CPPFLAGS $CPP_H2"
-    LIBS="$LIB_H2 $LIBS"
+# Note: sunil: Hack to skip check for dynamic availability of nghttp2. We
+# statically compile both libcurl and nghttp2 and link them directly to asd. We
+# do not want to use -static flag as it will try to statically link all other
+# libraries like openssl. Static linking with openssl in centos7 fails due to a
+# weird issue. https://bugzilla.redhat.com/show_bug.cgi?id=807050
+#
+#    LIBS="$LIB_H2 $LIBS"
+#
 
     # use nghttp2_option_set_no_recv_client_magic to require nghttp2
     # >= 1.0.0
